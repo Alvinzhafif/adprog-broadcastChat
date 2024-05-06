@@ -21,3 +21,11 @@ To make sure the program still runs when the port is changed to `8080`, we need 
 ![img_6.png](img_6.png)
 ### which line uses `tokio_websocket` in client
 ![img_7.png](img_7.png)
+## 2.3 Small changes. Add some information to client
+### first client
+![img_8.png](img_8.png)
+### second client
+![img_9.png](img_9.png)
+### third client
+![img_10.png](img_10.png)
+There are a few parts that I changed to achieve this, first in the `server` code, I added this line `let welcome_msg = format!("Alvin's Computer - From server: Welcome to chat! Type a message");` this is for the first line to show during the time the `client` code is runned. Next, I modified the print segment into `  let message = format!("Alvin's Computer - From server: {}: {}", addr, text);` Now instead of the previous message only I added the address and reformatted the statement, the message broadcast to the client will now follow that new format which includes the address as well. And for the `client` code I imported `send` and `next` for working with streams and sinks.

@@ -1,13 +1,13 @@
-use futures_util::stream::StreamExt;
-use futures_util::sink::SinkExt;
-use http::Uri;
+use futures_util::sink::SinkExt; // Import SinkExt trait
+use futures_util::stream::StreamExt; // Import StreamExt trait
+use std::error::Error; // Importing Error for future use
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_websockets::{ClientBuilder, Message};
 
 #[tokio::main]
-async fn main() -> Result<(), tokio_websockets::Error> {
+async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let (mut ws_stream, _) =
-        ClientBuilder::from_uri(Uri::from_static("ws://127.0.0.1:8080"))
+        ClientBuilder::from_uri(http::Uri::from_static("ws://127.0.0.1:8080"))
             .connect()
             .await?;
 
@@ -20,6 +20,7 @@ async fn main() -> Result<(), tokio_websockets::Error> {
             line = stdin.next_line() => {
                 match line {
                     Ok(Some(input)) => {
+                        // If you don't need to include the client's address, you can directly send the input message
                         if let Err(e) = ws_stream.send(Message::text(input)).await {
                             eprintln!("Error sending message to server: {}", e);
                             break;
@@ -42,7 +43,7 @@ async fn main() -> Result<(), tokio_websockets::Error> {
                     Some(Ok(msg)) => {
                         // Display the message received from the server
                         if let Some(text) = msg.as_text() {
-                            println!("Server: {}", text);
+                            println!("{}", text);
                         }
                     }
                     Some(Err(e)) => {

@@ -14,6 +14,10 @@ async fn handle_connection(
     let (mut write, mut read) = ws_stream.split();
     let mut bcast_rx = bcast_tx.subscribe();
 
+    // Send welcome message to the client
+    let welcome_msg = format!("Alvin's Computer - From server: Welcome to chat! Type a message");
+    write.send(Message::text(welcome_msg)).await?;
+
     loop {
         tokio::select! {
             // Receive messages from the client and broadcast them
@@ -22,10 +26,8 @@ async fn handle_connection(
                     Some(Ok(msg)) => {
                         if msg.is_text() {
                             if let Some(text) = msg.as_text() {
-                                if let Err(e) = bcast_tx.send(text.to_string()) {
-                                    eprintln!("Error broadcasting message: {}", e);
-                                    break;
-                                }
+                                let message = format!("Alvin's Computer - From server: {}: {}", addr, text);
+                                bcast_tx.send(message).map_err(|e| e.to_string())?;
                             }
                         } else if msg.is_close() {
                             println!("Client {addr:?} disconnected");
@@ -47,10 +49,7 @@ async fn handle_connection(
             msg = bcast_rx.recv() => {
                 match msg {
                     Ok(msg) => {
-                        if let Err(e) = write.send(Message::text(msg)).await {
-                            eprintln!("Error sending message to {addr:?}: {}", e);
-                            break;
-                        }
+                        write.send(Message::text(msg)).await?;
                     }
                     Err(_) => {
                         eprintln!("Broadcast channel closed");
